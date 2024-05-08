@@ -26,7 +26,6 @@ app.use(morgan('dev'));
 // Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
 app.post('/oauth2/google', async (req, res, next) => {
   try {
-    console.log(req.body);
     const googleOAuthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID as string;
     const gooelOAuthClientSecret = process.env
       .GOOGLE_OAUTH_CLIENT_SECRET as string;
@@ -35,7 +34,7 @@ app.post('/oauth2/google', async (req, res, next) => {
     const params = new URLSearchParams({
       client_id: googleOAuthClientId,
       client_secret: gooelOAuthClientSecret,
-      code: req.body.authorization.code,
+      code: req.body.code,
       grant_type: 'authorization_code',
       redirect_uri: googleRedirectURI,
     });
@@ -53,11 +52,12 @@ app.post('/oauth2/google', async (req, res, next) => {
 
 app.post('/oauth2/apple', async (req, res, next) => {
   try {
+    console.log(req.body);
     const appleOAuthClientId = process.env.APPLE_OAUTH_CLIENT_ID as string;
     const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID as string;
     const appleKeyId = process.env.APPLE_KEY_ID as string;
     const appleRedirectURI = process.env.APPLE_REDIRECT_URI as string;
-    const code = req.body.code as string;
+    const code = req.body.authorization.code as string;
 
     const privateKeyFileName = process.env
       .APPLE_OAUTH_CLIENT_SECRET_FILENAME as string;
