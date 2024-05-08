@@ -13,6 +13,9 @@ app.use(morgan('dev'));
 app.use(cors());
 app.use(express.json());
 
+const port = process.env.PORT as string;
+console.log(port);
+
 // Client로부터 Authorization code를 전달받고
 // Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
 app.post('/oauth2/google', async (req, res, next) => {
@@ -88,6 +91,6 @@ app.post('/oauth2/apple', async (req, res, next) => {
   }
 });
 
-app.listen('9090', () => {
-  console.log('server is running on port 9090');
+app.listen(Number(port), () => {
+  console.log(`server is running on port ${port}`);
 });
