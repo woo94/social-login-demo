@@ -87,7 +87,7 @@ app.post('/oauth2/apple', async (req, res, next) => {
     });
 
     const validateAuthorizationCodeRequest = await axios.post(
-      'https://appleid.apple.com/auth/oauth2/v2/token',
+      'https://appleid.apple.com/auth/token',
       params.toString()
     );
 
