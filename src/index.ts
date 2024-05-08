@@ -1,4 +1,4 @@
-import express from 'express';
+import express, {ErrorRequestHandler} from 'express';
 import morgan from 'morgan';
 import {google} from 'googleapis';
 import axios from 'axios';
@@ -96,6 +96,13 @@ app.post('/oauth2/apple', async (req, res, next) => {
     next(e);
   }
 });
+
+const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
+  console.log(err);
+  res.status(500).json(err);
+};
+
+app.use(errorHandler);
 
 app.listen(Number(port), () => {
   console.log(`server is running on port ${port}`);
