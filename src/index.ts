@@ -26,6 +26,7 @@ app.use(morgan('dev'));
 // Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
 app.post('/oauth2/google', async (req, res, next) => {
   try {
+    console.log(req.body);
     const googleOAuthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID as string;
     const gooelOAuthClientSecret = process.env
       .GOOGLE_OAUTH_CLIENT_SECRET as string;
@@ -34,7 +35,7 @@ app.post('/oauth2/google', async (req, res, next) => {
     const params = new URLSearchParams({
       client_id: googleOAuthClientId,
       client_secret: gooelOAuthClientSecret,
-      code: req.body.code,
+      code: req.body.authorization.code,
       grant_type: 'authorization_code',
       redirect_uri: googleRedirectURI,
     });
