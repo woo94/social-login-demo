@@ -9,12 +9,18 @@ import path from 'path';
 import jwt from 'jsonwebtoken';
 
 const app = express();
-app.use(morgan('dev'));
+
 app.use(cors());
 app.use(express.json());
 
 const port = process.env.PORT as string;
 console.log(port);
+
+app.get('/', (req, res, next) => {
+  res.status(200).end();
+});
+
+app.use(morgan('dev'));
 
 // Client로부터 Authorization code를 전달받고
 // Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
