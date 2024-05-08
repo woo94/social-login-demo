@@ -58,7 +58,7 @@ app.post('/oauth2/apple', async (req, res, next) => {
     const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID as string;
     const appleKeyId = process.env.APPLE_KEY_ID as string;
     const appleRedirectURI = process.env.APPLE_REDIRECT_URI as string;
-    const code = req.body.authorization.code as string;
+    const code = req.body.code as string;
 
     const privateKeyFileName = process.env
       .APPLE_OAUTH_CLIENT_SECRET_FILENAME as string;
