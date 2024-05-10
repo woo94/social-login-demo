@@ -7,6 +7,9 @@ import 'dotenv/config';
 import {readFileSync} from 'fs';
 import path from 'path';
 import jwt from 'jsonwebtoken';
+import url from 'node:url';
+import qs from 'qs';
+import {nanoid} from 'nanoid';
 
 const app = express();
 
@@ -22,6 +25,27 @@ app.get('/', (req, res, next) => {
 });
 
 app.use(morgan('dev'));
+
+const appleServiceID = process.env.APPLE_SERVICE_ID ?? '';
+const appleRedirectUri = process.env.APPLE_REDIRECT_URI ?? '';
+const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID ?? '';
+const privateKeyFileName = process.env.APPLE_PRIVATE_KEY_FILENAME ?? '';
+
+app.get('/sign-in-with-apple', (req, res, next) => {
+  const url = new URL('https://appleid.apple.com/auth/authorize');
+
+  const queryParams = qs.stringify({
+    client_id: appleServiceID,
+    response_mode: 'form_post',
+    response_type: 'code',
+    scope: 'name email',
+    redirect_uri: appleRedirectUri,
+  });
+
+  url.search = queryParams;
+
+  res.redirect(url.toString());
+});
 
 // Client로부터 Authorization code를 전달받고
 // Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
@@ -53,6 +77,7 @@ app.post('/oauth2/google', async (req, res, next) => {
 
 app.post('/oauth2/apple', async (req, res, next) => {
   try {
+    console.log(req.headers);
     console.log(req.body);
     const appleOAuthClientId = process.env.APPLE_OAUTH_CLIENT_ID as string;
     const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID as string;
