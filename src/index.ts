@@ -15,6 +15,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+// application/x-www-form-encoded 형태의 request body를 parsing 하기 위해 필요
 app.use(express.urlencoded({extended: true}));
 
 const port = process.env.PORT as string;
@@ -29,7 +30,8 @@ app.use(morgan('dev'));
 const appleServiceID = process.env.APPLE_SERVICE_ID ?? '';
 const appleRedirectUri = process.env.APPLE_REDIRECT_URI ?? '';
 const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID ?? '';
-const privateKeyFileName = process.env.APPLE_PRIVATE_KEY_FILENAME ?? '';
+const applePrivateKeyFileName = process.env.APPLE_PRIVATE_KEY_FILENAME ?? '';
+const applePrivateKeyId = process.env.APPLE_KEY_ID ?? ""
 
 app.get('/sign-in-with-apple', (req, res, next) => {
   const url = new URL('https://appleid.apple.com/auth/authorize');
@@ -77,17 +79,10 @@ app.post('/oauth2/google', async (req, res, next) => {
 
 app.post('/oauth2/apple', async (req, res, next) => {
   try {
-    console.log(req.headers);
-    console.log(req.body);
-    const appleOAuthClientId = process.env.APPLE_OAUTH_CLIENT_ID as string;
-    const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID as string;
-    const appleKeyId = process.env.APPLE_KEY_ID as string;
-    const appleRedirectURI = process.env.APPLE_REDIRECT_URI as string;
+    console.log("authorization result",req.body);
     const code = req.body.code as string;
 
-    const privateKeyFileName = process.env
-      .APPLE_OAUTH_CLIENT_SECRET_FILENAME as string;
-    const privateKey = readFileSync(path.join(__dirname, privateKeyFileName));
+    const privateKey = readFileSync(path.join(__dirname, applePrivateKeyFileName));
     const currTime = Math.floor(Date.now() / 1000);
 
     const appleOAuthClientSecret = jwt.sign(
@@ -96,29 +91,31 @@ app.post('/oauth2/apple', async (req, res, next) => {
         iat: currTime,
         exp: currTime + 15777000,
         aud: 'https://appleid.apple.com',
-        sub: appleOAuthClientId,
+        sub: appleServiceID,
       },
       privateKey,
       {
         algorithm: 'ES256',
-        keyid: appleKeyId,
+        keyid: applePrivateKeyId
       }
     );
 
-    const params = new URLSearchParams({
-      client_id: appleOAuthClientId,
+    const params = qs.stringify({
+      client_id: appleServiceID,
       client_secret: appleOAuthClientSecret,
       code,
       grant_type: 'authorization_code',
-      redirect_uri: appleRedirectURI,
+      redirect_uri: appleRedirectUri,
     });
 
     const validateAuthorizationCodeRequest = await axios.post(
       'https://appleid.apple.com/auth/token',
-      params.toString()
+      params
     );
 
-    res.status(200).json(validateAuthorizationCodeRequest.data);
+    console.log("token exchange result", validateAuthorizationCodeRequest.data)
+
+    res.status(200).send('ok')
   } catch (e) {
     next(e);
   }
