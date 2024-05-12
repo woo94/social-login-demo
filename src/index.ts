@@ -34,8 +34,8 @@ const applePrivateKeyFileName = process.env.APPLE_PRIVATE_KEY_FILENAME ?? '';
 const applePrivateKeyId = process.env.APPLE_KEY_ID ?? '';
 
 const googleClientID = process.env.GOOGLE_OAUTH_CLIENT_ID ?? '';
-const googleClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET ?? '';
 const googleRedirectUri = process.env.GOOGLE_REDIRECT_URI ?? '';
+const googleClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET ?? '';
 
 app.get('/sign-in-with-google', (req, res, next) => {
   const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
@@ -43,6 +43,7 @@ app.get('/sign-in-with-google', (req, res, next) => {
   const queryParams = qs.stringify({
     client_id: googleClientID,
     redirect_uri: googleRedirectUri,
+    response_type: 'code',
     scope: 'openid email',
     prompt: 'consent',
   });
@@ -68,21 +69,15 @@ app.get('/sign-in-with-apple', (req, res, next) => {
   res.redirect(url.toString());
 });
 
-// Client로부터 Authorization code를 전달받고
-// Google Authorization Server에 요청을 보내 이것을 ID token으로 교환해 옵니다.
-app.post('/oauth2/google', async (req, res, next) => {
+app.get('/oauth2/google', async (req, res, next) => {
   try {
-    const googleOAuthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID as string;
-    const gooelOAuthClientSecret = process.env
-      .GOOGLE_OAUTH_CLIENT_SECRET as string;
-    const googleRedirectURI = process.env.GOOGLE_REDIRECT_URI as string;
-
+    console.log(req.query);
     const params = new URLSearchParams({
-      client_id: googleOAuthClientId,
-      client_secret: gooelOAuthClientSecret,
-      code: req.body.code,
+      client_id: googleClientID,
+      client_secret: googleClientSecret,
+      code: req.query.code as string,
       grant_type: 'authorization_code',
-      redirect_uri: googleRedirectURI,
+      redirect_uri: googleRedirectUri,
     });
 
     const tokenRequest = await axios.post(
@@ -90,7 +85,9 @@ app.post('/oauth2/google', async (req, res, next) => {
       params.toString()
     );
 
-    res.status(200).send(tokenRequest.data);
+    console.log('token exchange result', tokenRequest.data);
+
+    res.status(200).send('ok');
   } catch (e) {
     next(e);
   }
