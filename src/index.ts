@@ -31,7 +31,26 @@ const appleServiceID = process.env.APPLE_SERVICE_ID ?? '';
 const appleRedirectUri = process.env.APPLE_REDIRECT_URI ?? '';
 const appleDeveloperTeamId = process.env.APPLE_DEVELOPER_TEAM_ID ?? '';
 const applePrivateKeyFileName = process.env.APPLE_PRIVATE_KEY_FILENAME ?? '';
-const applePrivateKeyId = process.env.APPLE_KEY_ID ?? ""
+const applePrivateKeyId = process.env.APPLE_KEY_ID ?? '';
+
+const googleClientID = process.env.GOOGLE_OAUTH_CLIENT_ID ?? '';
+const googleClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET ?? '';
+const googleRedirectUri = process.env.GOOGLE_REDIRECT_URI ?? '';
+
+app.get('/sign-in-with-google', (req, res, next) => {
+  const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
+
+  const queryParams = qs.stringify({
+    client_id: googleClientID,
+    redirect_uri: googleRedirectUri,
+    scope: 'openid email',
+    prompt: 'consent',
+  });
+
+  url.search = queryParams;
+
+  res.redirect(url.toString());
+});
 
 app.get('/sign-in-with-apple', (req, res, next) => {
   const url = new URL('https://appleid.apple.com/auth/authorize');
@@ -79,10 +98,12 @@ app.post('/oauth2/google', async (req, res, next) => {
 
 app.post('/oauth2/apple', async (req, res, next) => {
   try {
-    console.log("authorization result",req.body);
+    console.log('authorization result', req.body);
     const code = req.body.code as string;
 
-    const privateKey = readFileSync(path.join(__dirname, applePrivateKeyFileName));
+    const privateKey = readFileSync(
+      path.join(__dirname, applePrivateKeyFileName)
+    );
     const currTime = Math.floor(Date.now() / 1000);
 
     const appleOAuthClientSecret = jwt.sign(
@@ -96,7 +117,7 @@ app.post('/oauth2/apple', async (req, res, next) => {
       privateKey,
       {
         algorithm: 'ES256',
-        keyid: applePrivateKeyId
+        keyid: applePrivateKeyId,
       }
     );
 
@@ -113,9 +134,9 @@ app.post('/oauth2/apple', async (req, res, next) => {
       params
     );
 
-    console.log("token exchange result", validateAuthorizationCodeRequest.data)
+    console.log('token exchange result', validateAuthorizationCodeRequest.data);
 
-    res.status(200).send('ok')
+    res.status(200).send('ok');
   } catch (e) {
     next(e);
   }
